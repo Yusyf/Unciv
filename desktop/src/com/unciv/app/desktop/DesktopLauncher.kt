@@ -24,8 +24,10 @@ data class Attack(val name:String, private var damage:Int, val experienceClasses
         return damageDouble.toInt()
     }
 }
-class Experience(val name:String, val amount:Int)
-class Combatant(val name:String, var health:Int, val attacks:List<Attack>, val experiences:List<Experience>)
+class Experience(val name:String, var amount:Int)
+class Combatant(val name:String, var maxHealth:Int, val attacks:List<Attack>, val experiences:List<Experience>){
+    var health = maxHealth
+}
 
 val magicMissile = Attack("Magic Missile",10, listOf("Magic Missile"))
 
@@ -36,8 +38,8 @@ class BattleState(val player:Combatant, val enemy:Combatant):State() {
         val chosenAttackIndex = chooseAction(player.attacks.map { it.name })
         val chosenAttack = player.attacks[chosenAttackIndex]
         val playerAttackDamage = chosenAttack.calculateDamage(player.experiences)
-        println("You use ${chosenAttack.name} for $playerAttackDamage damage!")
         enemy.health -= playerAttackDamage
+        println("You use ${chosenAttack.name} for $playerAttackDamage damage! ${enemy.name} has ${enemy.health} health!")
         if (youWin()) {
             println("You defeated the ${enemy.name}!")
             return VictoryState()
@@ -49,7 +51,9 @@ class BattleState(val player:Combatant, val enemy:Combatant):State() {
         player.health -= enemyAttackDamage
         if (enemyWins()) {
             println("You died a miserable death!")
-            return DefeatState()
+            println("When you wake up, you are back at the preparation stage!")
+            player.health=player.maxHealth
+            return PreparationState(player)
         }
         return this
     }
@@ -58,12 +62,14 @@ class BattleState(val player:Combatant, val enemy:Combatant):State() {
     private fun enemyWins() = player.health <= 0
 }
 
-class PreparationState():State() {
-    val player = Combatant("Player", 100, listOf(magicMissile), listOf(Experience("Magic Missile", 10)))
+class PreparationState(val player: Combatant) :State() {
     var preparationTurns = 10
 
     override fun nextState(): State {
         if (preparationTurns > 0) {
+            val experienceToWorkOn = player.experiences.map { "Practice "+it.name }
+            val chosenExperience = chooseAction(experienceToWorkOn)
+            player.experiences[chosenExperience].amount += 10
             preparationTurns--
             return this
         } else {
@@ -113,7 +119,8 @@ internal object DesktopLauncher {
     fun main(arg: Array<String>) {
 
         if(true) {
-            var state: State = PreparationState()
+            val player = Combatant("Player", 100, listOf(magicMissile), listOf(Experience("Magic Missile", 10)))
+            var state: State = PreparationState(player)
             while (state !is VictoryState && state !is DefeatState) {
                 state = state.nextState()
             }
