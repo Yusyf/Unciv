@@ -1,10 +1,9 @@
 package com.unciv.app.desktop.textRpg
 
-import com.unciv.app.desktop.Combatant
-import com.unciv.app.desktop.State
-import com.unciv.app.desktop.VictoryState
+import com.unciv.app.desktop.*
 
-class BattleState(val player: Combatant, val enemy: Combatant): State() {
+
+class BattleState(val player: Player, val enemy: Combatant): State() {
     override fun nextState(): State {
         println("Your health: ${player.health}")
 
@@ -25,8 +24,19 @@ class BattleState(val player: Combatant, val enemy: Combatant): State() {
         player.health -= enemyAttackDamage
         if (enemyWins()) {
             println("You died a miserable death!")
-            println("When you wake up, you are back at the preparation stage!")
-            player.health=player.maxHealth
+            println("  --------   ")
+            if (!player.encounters.contains(Encounter.reset)) {
+                println("You open your eyes, and and see a familiar ceiling.")
+                println("You're back in your room. Were you saved? How long have you been here?")
+                println("You go downstairs and ask your mother what happened, who attacked us? Is everyone okay?")
+                println("She looks at you strangely, tells you you must have had an extremely odd dream, ")
+                println("  and that you should get your things ready to head back to the Academy - you wouldn't want to miss the first day of school!")
+                player.encounters += Encounter.reset
+            } else {
+                println("You wake up at home again.")
+            }
+
+            player.health = player.maxHealth
             return PreparationState(player)
         }
         return this

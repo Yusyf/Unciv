@@ -9,6 +9,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.tools.texturepacker.TexturePacker
 import com.unciv.UncivGame
+import com.unciv.app.desktop.textRpg.NewGameState
 import com.unciv.app.desktop.textRpg.PreparationState
 import com.unciv.models.translations.tr
 import java.io.File
@@ -23,8 +24,7 @@ internal object DesktopLauncher {
     fun main(arg: Array<String>) {
 
         if(true) {
-            val player = Combatant("Player", 100, arrayListOf(getMagicMissile()))
-            var state: State = PreparationState(player)
+            var state: State = NewGameState()
             while (state !is VictoryState && state !is DefeatState) {
                 state = state.nextState()
             }

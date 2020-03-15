@@ -2,8 +2,16 @@ package com.unciv.app.desktop
 
 import kotlin.math.log10
 
-class Combatant(val name: String, var maxHealth: Int, val abilities: ArrayList<Ability>){
+enum class Encounter{
+    reset
+}
+
+open class Combatant(val name: String, var maxHealth: Int, val abilities: ArrayList<Ability>){
     var health = maxHealth
+}
+
+class Player:Combatant("Player", 100, arrayListOf(getMagicMissile())){
+    val encounters= ArrayList<Encounter>()
 }
 
 fun getMagicMissile() = Ability("Magic Missile", arrayListOf("Mana Shaping"), listOf("Damage=5") )
