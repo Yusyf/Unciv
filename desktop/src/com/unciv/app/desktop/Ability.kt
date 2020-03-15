@@ -2,8 +2,8 @@ package com.unciv.app.desktop
 
 import kotlin.math.log10
 
-enum class Encounter{
-    reset
+object Encounter{
+    const val reset="Reset"
 }
 
 open class Combatant(val name: String, var maxHealth: Int, val abilities: ArrayList<Ability>){
@@ -11,7 +11,7 @@ open class Combatant(val name: String, var maxHealth: Int, val abilities: ArrayL
 }
 
 class Player:Combatant("Player", 100, arrayListOf(getMagicMissile())){
-    val encounters= ArrayList<Encounter>()
+    val encounters= ArrayList<String>()
 }
 
 fun getMagicMissile() = Ability("Magic Missile", arrayListOf("Mana Shaping"), listOf("Damage=5") )

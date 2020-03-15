@@ -26,11 +26,22 @@ class BattleState(val player: Player, val enemy: Combatant): State() {
             println("You died a miserable death!")
             println("  --------   ")
             if (!player.encounters.contains(Encounter.reset)) {
-                println("You open your eyes, and and see a familiar ceiling.")
-                println("You're back in your room. Were you saved? How long have you been here?")
-                println("You go downstairs and ask your mother what happened, who attacked us? Is everyone okay?")
-                println("She looks at you strangely, tells you you must have had an extremely odd dream, ")
-                println("  and that you should get your things ready to head back to the Academy - you wouldn't want to miss the first day of school!")
+                listOf( "You open your eyes, and and see a familiar ceiling.",
+                        "You're back in your room. Were you saved? How long have you been here?",
+                        "You go downstairs and ask your mother what happened, who attacked us? Is everyone okay?",
+                        "She looks at you strangely, tells you you must have had an extremely odd dream, ",
+                        "  and that you should get your things ready to head back to the Academy - you wouldn't want to miss the first day of school!",
+                        "She seems to genuinely not know what you're talking about.",
+                        "Was it all a dream, then? It seemed altogether too real for a dream.",
+                        "Your dreams have always been vague, nonsensical, and prone to evaporate out of your memory soon after you woke up.",
+                        "These felt exactly like your normal memories – no talking birds, floating pyramids,",
+                        " three-eyed wolves and other surreal scenes your dreams usually contained.",
+                        " And there was so much of it, too – surely a whole week worth of experiences is too much for a mere dream?",
+                        "Wait, you recall you did learn some magic. You make a couple of sweeping gestures and words before cupping your hands in front of you." +
+                        "Yep, you definitely know the spell – you retained not just the memory of the casting procedure,",
+                        " but also the fine control he developed with repeated practice with it. ",
+                        "You don't get things like that from a mere vision, even a prophetic one."
+                )
                 player.encounters += Encounter.reset
             } else {
                 println("You wake up at home again.")
