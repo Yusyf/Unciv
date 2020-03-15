@@ -9,117 +9,21 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.tools.texturepacker.TexturePacker
 import com.unciv.UncivGame
+import com.unciv.app.desktop.textRpg.PreparationState
 import com.unciv.models.translations.tr
 import java.io.File
 import kotlin.concurrent.thread
-import kotlin.math.log10
 import kotlin.system.exitProcess
 
-data class Attack(val name:String, private var damage:Int, val experienceClasses: List<String>) {
-    fun calculateDamage(experiences: List<Experience>): Int {
-        var damageDouble = damage.toDouble()
-        for (experience in experiences)
-            if (experience.name in experienceClasses)
-                damageDouble *= log10(experience.amount.toDouble())
-        return damageDouble.toInt()
-    }
-}
-class Experience(val name:String, var amount:Int)
-class Combatant(val name:String, var maxHealth:Int, val attacks:List<Attack>, val experiences:List<Experience>){
-    var health = maxHealth
-}
 
-val magicMissile = Attack("Magic Missile",10, listOf("Magic Missile"))
 
-class BattleState(val player:Combatant, val enemy:Combatant):State() {
-    override fun nextState(): State {
-        println("Your health: ${player.health}")
-
-        val chosenAttackIndex = chooseAction(player.attacks.map { it.name })
-        val chosenAttack = player.attacks[chosenAttackIndex]
-        val playerAttackDamage = chosenAttack.calculateDamage(player.experiences)
-        enemy.health -= playerAttackDamage
-        println("You use ${chosenAttack.name} for $playerAttackDamage damage! ${enemy.name} has ${enemy.health} health!")
-        if (youWin()) {
-            println("You defeated the ${enemy.name}!")
-            return VictoryState()
-        }
-
-        val enemyAttack = enemy.attacks.random()
-        val enemyAttackDamage = enemyAttack.calculateDamage(enemy.experiences)
-        println("${enemy.name} used ${enemyAttack.name} for $enemyAttackDamage damage!")
-        player.health -= enemyAttackDamage
-        if (enemyWins()) {
-            println("You died a miserable death!")
-            println("When you wake up, you are back at the preparation stage!")
-            player.health=player.maxHealth
-            return PreparationState(player)
-        }
-        return this
-    }
-
-    private fun youWin() = enemy.health <= 0
-    private fun enemyWins() = player.health <= 0
-}
-
-class PreparationState(val player: Combatant) :State() {
-    var preparationTurns = 10
-
-    override fun nextState(): State {
-        if (preparationTurns > 0) {
-            val experienceToWorkOn = player.experiences.map { "Practice "+it.name }
-            val chosenExperience = chooseAction(experienceToWorkOn)
-            player.experiences[chosenExperience].amount += 10
-            preparationTurns--
-            return this
-        } else {
-            val enemy = Combatant("Cultist", 200, listOf(magicMissile), listOf(Experience("Magic Missile", 50)))
-            return BattleState(player, enemy)
-        }
-    }
-}
-
-class VictoryState():State() {
-    override fun nextState(): State {
-        println("You beat the entire game!")
-        return this
-    }
-}
-class DefeatState():State() {
-    override fun nextState(): State {
-        println("You Lose, loser!")
-        return this
-    }
-}
-
-abstract class State {
-    abstract fun nextState(): State
-
-    fun chooseAction(actions: List<String>): Int {
-        println("Choose an action:")
-        for ((i, action) in actions.withIndex()) {
-            println("$i - $action")
-        }
-        while (true) {
-            val read = readLine()
-            if (read == null) continue
-            try {
-                val chosenIndex = read.toInt()
-                if (chosenIndex !in actions.indices) throw Exception()
-                return chosenIndex
-            } catch (ex: java.lang.Exception) {
-                println("Not a valid choice!")
-            }
-        }
-    }
-}
 
 internal object DesktopLauncher {
     @JvmStatic
     fun main(arg: Array<String>) {
 
         if(true) {
-            val player = Combatant("Player", 100, listOf(magicMissile), listOf(Experience("Magic Missile", 10)))
+            val player = Combatant("Player", 100, arrayListOf(getMagicMissile()))
             var state: State = PreparationState(player)
             while (state !is VictoryState && state !is DefeatState) {
                 state = state.nextState()
