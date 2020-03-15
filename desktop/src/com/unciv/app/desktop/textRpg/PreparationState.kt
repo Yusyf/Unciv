@@ -11,7 +11,7 @@ object Locations{
 
 class PreparationState(val player: Player) : State() {
     var preparationTurns = 6
-    var location = "Home (Cirin)"
+    var location = Locations.home
 
     fun getLocationChoices(){
         val choices = when (location) {
@@ -24,16 +24,15 @@ class PreparationState(val player: Player) : State() {
     }
 
     private fun alchemyLabChoices(): List<Action> {
-        if(!player.encounters.contains(Encounter.alchemyLab)){
+        if (player.addEncounter(Encounter.alchemyLab)) {
             println("The academy has an alchemical workshop students could use for their own projects, but you have to bring your own ingredients.")
-            player.encounters.add(Encounter.alchemyLab)
         }
         println("There are a couple of people here, but there's still space to work.")
-        return listOf(Action("Leave"){location=Locations.academy; getLocationChoices()})
+        return listOf(Action("Leave") { location = Locations.academy; getLocationChoices() })
     }
 
     private fun libraryChoices(): List<Action> {
-        if (!player.encounters.contains(Encounter.library)) {
+        if (player.addEncounter(Encounter.library)) {
             val texts = listOf(
                     "Although the academy loved saying they were an elite institution thanks to the excellent quality of its teaching staff,",
                     " the truth was that the main reason for their supremacy was their library.",
@@ -45,10 +44,25 @@ class PreparationState(val player: Player) : State() {
                     " Many of the lower levels are only accessible to guild mages,",
                     " so it is only now you are allowed to browse their contents.")
             texts.forEach { println(it) }
-            player.encounters += Encounter.library
         }
 
-        return listOf(Action("Leave") { location = Locations.academy; getLocationChoices() })
+        return listOf(Action("Search for books about time travel") {
+            listOf(
+                    "To call it disappointing would be calling it mildly. ",
+                    "For one thing, there are no books on time travel. ",
+                    "The topic is not considered a serious field of study, what with it being impossible and all. ",
+                    "What little is written about it is scattered across innumerable volumes, ",
+                    "   hidden in unmarked sections and paragraphs of otherwise unrelated books. ",
+                    "Piecing together these scattered mentions was an absolute chore, and not all that rewarding either – ",
+                    "   none of it was useful in solving the mystery of the future memories."
+            ).forEach { println(it) }
+            getLocationChoices()
+        }.takeIf { Encounter.reset in player.encounters && player.addEncounter(Encounter.searchTimeTravelBooks) },
+                Action("Search around aimlessly"){
+                    println("You wander the library for a bit, but you're not sure what you're looking for," +
+                            " so it'll be hard for you to find anything useful.")},
+                Action("Leave") { location = Locations.academy; getLocationChoices() })
+                .filterNotNull()
     }
 
     override fun nextState(): State {
@@ -60,31 +74,19 @@ class PreparationState(val player: Player) : State() {
             println("It's a new day - What will you do?")
             return this
         } else {
-            if(Encounter.reset !in player.encounters){
-                val texts = listOf(
-                "The sound of fireworks break you out of your thoughts. It was beautiful." ,
-                        " Most of them dissolved into quickly fading motes of light after the initial explosion, but a couple of them remained whole and consistently bright, more like flares than fireworks." ,
-                        " They arced through the sky before dipping down and falling back to earth like falling stars." ,
-                        " You frown. Weird. Shouldn't they be exploding by now?",
-
-                "The flare falling closest to you slams into the nearby academy residence building and detonates." ,
-                        " The explosion us so loud and so bright that you are momentarily blinded and deafened," ,
-                        " stumbling back and collapsing to your knees as the entire building shakes beneath your feet.",
-
-                "As the flares started dropping back to earth, you begin to panic. What the hell are you supposed to do!? " ,
-                        " Running away would be pointless since you don't know what the flares are targeting." ,
-                        " You could very well be running straight into the area of effect if you run blindly." ,
-                        " Wait a minute, why *you* have to do anything?" ,
-                        " There are a bunch of capable mages in the building, you should just notify them and have them handle it." ,
-                        " You break into a run, but as you run a man in a red cloak fires a Magic Missile at you!")
-                for(text in texts) println(text)
-            }
-            val enemy = Combatant("Mage", 200, arrayListOf(getMagicMissile().apply { experience = 100 }))
-            return BattleState(player, enemy)
+            return InvasionState(player)
         }
     }
 
     fun academyChoices(): List<Action> {
+        if(Encounter.reset in player.encounters && player.addEncounter(Encounter.thinkAboutWarningOthers)) {
+            listOf("The simplest idea would be to warn as many people as possible ",
+                    "(thus ensuring that at least some of them take the warnings seriously) and do so face-to-face,",
+                    " since written communications can be ignored in a way that is not really possible in personal interactions.",
+                    " Unfortunately, that would almost certainly paint you as a madman until you're eventually vindicated by the actual assault.")
+                    .forEach { println(it) }
+        }
+
         return listOf(Action("Go to class"){
             classChoice()
             preparationTurns--
@@ -108,11 +110,12 @@ class PreparationState(val player: Player) : State() {
                 }
                 chooseAndActivateAction(locationActions)
             }
-
         ).filterNotNull()
     }
 
     fun classChoice(){
+
+        if(Encounter.reset in player.encounters) println("It's exactly like it was the previous time.")
         when(preparationTurns) {
             5 -> {
                 println("Essential Invocations. We learned the difference between structured and unstructured magic," +
@@ -120,13 +123,13 @@ class PreparationState(val player: Player) : State() {
                 if (player.abilities.none { it.name == "Mana shaping exercise" })
                     player.abilities += Ability("Torch", arrayListOf("Light emitting"), listOf())
             }
-            4 -> println("Advanced Runes. This year, we're starting to learn about imbuing runes, and the effects of such.")
+            4 -> println("Basic Runes. This year, we're starting to learn about imbuing runes, and the effects of such.")
             3 -> {
                 println("Warding. The teacher's textbook is more like a manual for a professional warder than a student's textbook,")
                 println(" and it's clear that although she knows the subject material, she doesn't know how to teach. At all.")
             }
             2 -> {
-                println("Mana shaping. We learnt a new mana shaping exercise - spinning a pencil, but switching between the X and Z axes.")
+                println("Advanced mana control. We learnt a new mana shaping exercise - levitating, and *spinning*, a pencil.")
                 println("It's much more difficult than I expected.")
                 if (player.abilities.none { it.name == "Mana shaping exercise" })
                     player.abilities += Ability("Mana shaping exercise", arrayListOf("Mana Shaping"), listOf())
@@ -135,6 +138,7 @@ class PreparationState(val player: Player) : State() {
                 println("Alchemy. We made a type of glue out of ground Borer husks.")
             }
         }
+        if(Encounter.reset in player.encounters) println("It's exactly like it was the previous time.")
     }
 
     fun homeChoices(): List<Action> {
@@ -144,7 +148,37 @@ class PreparationState(val player: Player) : State() {
                 println("You take the train from Cirin to Cyoria, and check in to your new academy housing -")
                 println("  since the Academy is now authorized to teach you first-circle spells, security is tighter.")
             }
-            else println("You take the train to Cyoria again.")
+            else {
+                println("You take the train to Cyoria again.")
+                if(Encounter.tookTrainBack in player.encounters && player.addEncounter(Encounter.musings)) {
+                    listOf("You stare at the endless fields blurring past you, the silence of the otherwise empty compartment ",
+                            "only broken by the rhythmic thumping of the train's machinery.",
+                            "You look calm and relaxed, but it's only a practiced façade and nothing more.",
+                            "Why was this happening again? The first time it had happened, you were dead sure the mage was responsible.",
+                            "The spell had hit you, and then you woke up in the past. Cause and effect. ",
+                            "He hadn't been hit by some mysterious spell this time, though – ",
+                            "not unless someone had snuck into the train compartment while he was sleeping, which he found very unlikely.",
+                            " No, he had just dozed off and woke up in the past again, as if it was the most normal thing in the world.",
+                            "Then again, it did highlight some things that had been bothering him until now. ",
+                            "After all, why had the mage cast a time travel spell on him?",
+                            " It seemed rather counterproductive to the whole 'secret invasion' plot.",
+                            " Time travel seemed too purposeful and complex to be an accidental side effect,",
+                            " and he seriously doubted the mage had used a spell whose effects he did not understand.",
+                            " Even a neophyte like him knew what a horrible idea it was to use a spell you don't understand in an uncontrolled environment.",
+                            " No, there was a simpler explanation: the mage wasn't responsible for his time traveling problems.",
+                            "He really had been trying to kill him. ",
+                            "He was half-tempted to get off the train and spend the entire month fooling",
+                            " around and trying to forget this whole time travel business, but quickly dismissed it.",
+                            " Blowing off the beginning of the school year like that would be really irresponsible and self-destructive,",
+                            " even if going through another identical month of classes was anything but appealing.",
+                            " There was the possibility that he would be flung into the past a third time time, of course,",
+                            " but that wasn't something he should be relying on. ",
+                            "There was no way the spell could keep sending him back indefinitely, after all – ",
+                            "it was bound to run out of mana sooner or later.",
+                            " Probably sooner, since time travel must be pretty high level."
+                    ).forEach { println(it) }
+                }
+            }
             preparationTurns--
         })
     }

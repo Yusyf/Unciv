@@ -25,7 +25,7 @@ class BattleState(val player: Player, val enemy: Combatant): State() {
         if (enemyWins()) {
             println("You died a miserable death!")
             println("  --------   ")
-            if (!player.encounters.contains(Encounter.reset)) {
+            if (player.addEncounter(Encounter.reset)) {
                 listOf("You open your eyes, and and see a familiar ceiling.",
                         "You're back in your room. Were you saved? How long have you been here?",
                         "You go downstairs and ask your mother what happened, who attacked us? Is everyone okay?",
@@ -45,7 +45,6 @@ class BattleState(val player: Player, val enemy: Combatant): State() {
                         "You're entirely unclear on what on earth is going on, but whatever it is, it's in the Academy.",
                         "You feel should probably practice your combat skills, if you don't want to get mauled like you did last time."
                 ).forEach { println(it) }
-                player.encounters += Encounter.reset
             } else {
                 println("You wake up at home again.")
             }

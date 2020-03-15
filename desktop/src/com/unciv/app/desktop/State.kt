@@ -15,13 +15,14 @@ abstract class State {
 
     fun chooseAction(actions: List<String>): Int {
         for ((i, action) in actions.withIndex()) {
-            println("$i - $action")
+            val placement = i+1
+            println("$placement - $action")
         }
         while (true) {
             val read = readLine()
             if (read == null) continue
             try {
-                val chosenIndex = read.toInt()
+                val chosenIndex = read.toInt() -1
                 if (chosenIndex !in actions.indices) throw Exception()
                 return chosenIndex
             } catch (ex: java.lang.Exception) {

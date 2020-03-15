@@ -2,10 +2,15 @@ package com.unciv.app.desktop
 
 import kotlin.math.log10
 
-object Encounter{
-    const val alchemyLab="Alchemy Lab"
-    const val library="Library"
-    const val reset="Reset"
+enum class Encounter{
+    alchemyLab,
+    library,
+    reset,
+    musings,
+    vantagePoint,
+    searchTimeTravelBooks,
+    tookTrainBack,
+    thinkAboutWarningOthers
 }
 
 open class Combatant(val name: String, var maxHealth: Int, val abilities: ArrayList<Ability>){
@@ -13,7 +18,13 @@ open class Combatant(val name: String, var maxHealth: Int, val abilities: ArrayL
 }
 
 class Player:Combatant("Player", 100, arrayListOf(getMagicMissile())){
-    val encounters= ArrayList<String>()
+    val encounters= HashSet<Encounter>()
+
+    fun addEncounter(encounter: Encounter): Boolean {
+        if(encounter in encounters) return false
+        encounters.add(encounter)
+        return true
+    }
 }
 
 fun getMagicMissile() = Ability("Magic Missile", arrayListOf("Mana Shaping"), listOf("Damage=5") )
