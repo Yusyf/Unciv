@@ -3,6 +3,8 @@ package com.unciv.app.desktop
 import kotlin.math.log10
 
 object Encounter{
+    const val alchemyLab="Alchemy Lab"
+    const val library="Library"
     const val reset="Reset"
 }
 

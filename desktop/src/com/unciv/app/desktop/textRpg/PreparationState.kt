@@ -4,20 +4,56 @@ import com.unciv.app.desktop.*
 
 object Locations{
     const val academy = "Academy (Cyoria)"
+    const val alchemyLab = "Alchemical lab"
+    const val library = "Library"
     const val home = "Home (Cirin)"
 }
 
 class PreparationState(val player: Player) : State() {
-    var preparationTurns = 5
+    var preparationTurns = 6
     var location = "Home (Cirin)"
 
-    override fun nextState(): State {
-
+    fun getLocationChoices(){
         val choices = when (location) {
             Locations.academy -> academyChoices()
+            Locations.alchemyLab -> alchemyLabChoices()
+            Locations.library -> libraryChoices()
             else -> homeChoices()
         }
         chooseAndActivateAction(choices)
+    }
+
+    private fun alchemyLabChoices(): List<Action> {
+        if(!player.encounters.contains(Encounter.alchemyLab)){
+            println("The academy has an alchemical workshop students could use for their own projects, but you have to bring your own ingredients.")
+            player.encounters.add(Encounter.alchemyLab)
+        }
+        println("There are a couple of people here, but there's still space to work.")
+        return listOf(Action("Leave"){location=Locations.academy; getLocationChoices()})
+    }
+
+    private fun libraryChoices(): List<Action> {
+        if (!player.encounters.contains(Encounter.library)) {
+            val texts = listOf(
+                    "Although the academy loved saying they were an elite institution thanks to the excellent quality of its teaching staff,",
+                    " the truth was that the main reason for their supremacy was their library.",
+                    " Through contributions of its alumni, generous budget allocations by a number of former headmasters,",
+                    " quirks of local criminal law, and sheer historical accident, the academy had built a library without equal.",
+                    " You could find anything you wanted, regardless of whether the topic was magical or not",
+                    " – there was a whole section reserved for steamy romance novels, for instance.",
+                    " The library was so massive it had actually expanded into the tunnels beneath the city.",
+                    " Many of the lower levels are only accessible to guild mages,",
+                    " so it is only now you are allowed to browse their contents.")
+            texts.forEach { println(it) }
+            player.encounters += Encounter.library
+        }
+
+        return listOf(Action("Leave") { location = Locations.academy; getLocationChoices() })
+    }
+
+    override fun nextState(): State {
+        getLocationChoices()
+
         println("   ------    ")
 
         if (preparationTurns > 0) {
@@ -61,7 +97,19 @@ class PreparationState(val player: Player) : State() {
                     preparationTurns--
                 } }
                 chooseAndActivateAction(practiceActions)
-            })
+            }.takeIf { player.encounters.contains(Encounter.reset) },
+            Action("Go to..."){
+                val locations = listOf(Locations.alchemyLab, Locations.library)
+                val locationActions = locations.map {
+                    Action("Go to $it") {
+                        location = it
+                        getLocationChoices()
+                    }
+                }
+                chooseAndActivateAction(locationActions)
+            }
+
+        ).filterNotNull()
     }
 
     fun classChoice(){
@@ -92,8 +140,11 @@ class PreparationState(val player: Player) : State() {
     fun homeChoices(): List<Action> {
         return listOf(Action("Head to Cyoria"){
             location = Locations.academy
-            println("You take the train from Cirin to Cyoria, and check in to your new academy housing -")
-            println("  since the Academy is now authorized to teach you first-circle spells, security is tighter.")
+            if(!player.encounters.contains(Encounter.reset)) {
+                println("You take the train from Cirin to Cyoria, and check in to your new academy housing -")
+                println("  since the Academy is now authorized to teach you first-circle spells, security is tighter.")
+            }
+            else println("You take the train to Cyoria again.")
             preparationTurns--
         })
     }
