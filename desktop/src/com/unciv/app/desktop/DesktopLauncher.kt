@@ -9,24 +9,51 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.tools.texturepacker.TexturePacker
 import com.unciv.UncivGame
-import com.unciv.app.desktop.textRpg.NewGameState
-import com.unciv.app.desktop.textRpg.PreparationState
+import com.unciv.app.desktop.textRpg.*
 import com.unciv.models.translations.tr
 import java.io.File
 import kotlin.concurrent.thread
 import kotlin.system.exitProcess
 
 
+class RmGameInfo{
+    val unit: Combatant
+    var day = 1
+    fun passDay(){
+        day++
+        println("Day $day")
+        println("You are ${unit.hunger}")
+    }
 
+    init {
+        unit = Combatant("Goblin")
+        unit.abilities += MonsterGenerator.run.copy()
+        unit.abilities += Ability("Punch", arrayListOf("Strength", "Body"), listOf("Damage=2", "Energy=1"))
+        unit.abilities += Ability("Spear Thrust", arrayListOf("Strength", "Spear", "Accuracy"),
+                listOf("Damage=10", "Energy=10", "Requires=Spear"))
+        unit.abilities += Ability("Spear Throw", arrayListOf("Strength", "Spear", "Accuracy","Ranged"),
+                listOf("Damage=15", "Energy=10", "Requires=Spear","Ranged","LoseRequired","CauseStatus=Burdened"))
+                .apply { experience=100 }
+        unit.abilities += Ability("Stab", arrayListOf("Strength", "Dagger"), listOf("Damage=4", "Energy=2", "Requires=Dagger"))
+                .apply { experience=10 }
+        unit.items += Item("Pathetic wooden spear", "Spear", "Equip=Hands").apply { isEquipped=true }
+        println("You wake up hungry again.")
+        println("You are a Goblin, one of many in this cave.")
+        println("But something feels different, now - you're confident that life is changing for the better.")
+    }
+}
 
 internal object DesktopLauncher {
+
     @JvmStatic
     fun main(arg: Array<String>) {
 
         if(true) {
-            var state: State = NewGameState()
+            val rmGameInfo = RmGameInfo()
+
+            var state: State = RmBaseState()
             while (state !is VictoryState && state !is DefeatState) {
-                state = state.nextState()
+                state = state.nextState(rmGameInfo)
             }
             return
         }

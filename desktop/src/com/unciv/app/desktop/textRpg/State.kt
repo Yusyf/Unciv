@@ -1,14 +1,16 @@
-package com.unciv.app.desktop
+package com.unciv.app.desktop.textRpg
+
+import com.unciv.app.desktop.RmGameInfo
 
 class Action(val name:String, val action:()->Unit)
 abstract class State {
-    abstract fun nextState(): State
+    abstract fun nextState(rmGameInfo: RmGameInfo): State
 
     fun chooseAndActivateAction(actions:List<Action>){
-        if(actions.size==1){
-            actions.first().action()
-            return
-        }
+//        if(actions.size==1){
+//            actions.first().action()
+//            return
+//        }
         val chosenAction = chooseAction(actions.map { it.name })
         actions[chosenAction].action()
     }
@@ -32,14 +34,14 @@ abstract class State {
     }
 }
 
-class VictoryState():State() {
-    override fun nextState(): State {
+class VictoryState(): State() {
+    override fun nextState(rmGameInfo: RmGameInfo): State {
         println("You beat the entire game!")
         return this
     }
 }
-class DefeatState():State() {
-    override fun nextState(): State {
+class DefeatState(): State() {
+    override fun nextState(rmGameInfo: RmGameInfo): State {
         println("You Lose, loser!")
         return this
     }
