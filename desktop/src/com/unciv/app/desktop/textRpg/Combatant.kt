@@ -52,4 +52,23 @@ open class Combatant(val name: String){
         health = min(health + amount, maxHealth)
     }
 
+    fun addItem(item: Item){
+        items.add(item)
+        val equipSlot = item.equipSlot()
+        if(canEquip(item) && items.none { it.isEquipped && it.equipSlot() == equipSlot }) { // auto-equip stuff we can
+            println("You equip the ${item.name}")
+            item.isEquipped = true
+        }
+    }
+
+    fun canEquip(it: Item): Boolean {
+        val equipSlot = it.equipSlot()
+        if(equipSlot==null) return false
+        return status.findParams("EquipSlot").contains(equipSlot)
+    }
+
+    fun getArmor(): Int {
+        return (items + corpseLoot).map { it.parameters.findParams("Armor").map { it.toInt() }.sum() }.sum()
+    }
+
 }

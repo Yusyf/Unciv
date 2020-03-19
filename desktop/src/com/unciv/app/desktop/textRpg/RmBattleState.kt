@@ -6,7 +6,7 @@ import com.unciv.app.desktop.*
 
 class RmBattleState(val player: Combatant, val enemy: Combatant): State() {
     fun attack(attacker:Combatant,defender:Combatant, attack:Ability): Int {
-        val attackDamage = attack.calculateDamage(attacker)
+        val attackDamage = attack.calculateDamage(attacker) - defender.getArmor()
         defender.health -= attackDamage
         attacker.energy -= attack.getRequiredEnergy(attacker)
         attack.experience += 10
@@ -54,10 +54,18 @@ class RmBattleState(val player: Combatant, val enemy: Combatant): State() {
             println("Enemy ${enemy.name} is escaping with ${escapeAbility.name}!")
             val rangedActions = player.getUsableBattleAbilities().filter { it.parameters.contains("Ranged") }
             if(rangedActions.isNotEmpty()){
-                chooseAndActivateAction(rangedActions.map { Action(it.name){ attack(player,enemy,it) }})
+                chooseAndActivateAction(rangedActions.map { Action(it.name) {
+                    attack(player, enemy, it)
+                    print("You use ${chosenAction.name} for $playerAttackDamage damage! ")
+                    if (enemy.health > 0) println("${enemy.name} has ${enemy.health} health!")
+                    else println("${enemy.name} has been defeated!")
+                }},true)
                 if (youWin()) return PostBattleState(player,enemy)
             }
-            if(enemy.canUse(escapeAbility)) return RmBaseState()
+            if(enemy.canUse(escapeAbility)) {
+                print("${enemy.name} has escaped!")
+                return RmBaseState()
+            }
             else println("Enemy ${enemy.name} can no longer ${escapeAbility.name}!")
         }
         else {
@@ -94,12 +102,7 @@ class PostBattleState(val player:Combatant,val enemy: Combatant):State() {
         }
         for (item in enemy.items + enemy.corpseLoot) {
             item.isEquipped = false
-            player.items += item
-            val equipSlot = item.equipSlot()
-            if (equipSlot != null && player.items.none { it.isEquipped && it.equipSlot() == equipSlot }) { // auto-equip stuff we can
-                println("You equip the ${item.name}")
-                item.isEquipped = true
-            }
+            player.addItem(item)
         }
 
         return RmBaseState()

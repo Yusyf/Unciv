@@ -10,7 +10,8 @@ object MonsterGenerator {
                 .apply { experience = Random.nextInt(1000, 3000) }
         rabbit.abilities += run
         rabbit.corpseLoot += sequenceOf(Item("Horn Rabbit meat", "Food"),
-                Item("Rabbit Horn", "Dagger","Equip=Hands"))
+                Item("Rabbit Horn", "Dagger", "Equip=Hands", "Toughness=4"),
+                Item("Rabbit Fur", "Skin", "Toughness=2"))
         return rabbit
     }
 
@@ -26,5 +27,18 @@ object MonsterGenerator {
 //            wolf.corpseLoot += Item("Wolf skin", "Skin")
 
         return wolf
+    }
+}
+
+object ItemGenerator{
+    fun getLeatherTunic(skinItem:Item): Item {
+        val tunic = Item("${skinItem.name} Tunic")
+        val toughness = skinItem.parameters.findParams("Toughness").firstOrNull()
+        if(toughness!=null) {
+            tunic.parameters += "Toughness=$toughness"
+            tunic.parameters += "Defense="+toughness.toInt()*5
+        }
+        tunic.parameters+= "Equip=Chest"
+        return tunic
     }
 }

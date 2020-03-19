@@ -3,8 +3,8 @@ package com.unciv.app.desktop.textRpg
 import kotlin.math.log10
 import kotlin.math.max
 
-class Item(val name:String, val parameters: ArrayList<String>) {
-    var isEquipped = false
+data class Item(val name:String, val parameters: ArrayList<String>, var isEquipped: Boolean = false) {
+
     fun isEquippable() = equipSlot() != null
     fun equipSlot()  = parameters.findParams("Equip").firstOrNull()
 

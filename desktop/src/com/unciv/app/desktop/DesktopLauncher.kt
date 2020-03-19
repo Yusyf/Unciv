@@ -34,9 +34,10 @@ class RmGameInfo{
         unit.abilities += Ability("Spear Throw", arrayListOf("Strength", "Spear", "Accuracy","Ranged"),
                 listOf("Damage=15", "Energy=10", "Requires=Spear","Ranged","LoseRequired","CauseStatus=Burdened"))
                 .apply { experience=100 }
-        unit.abilities += Ability("Stab", arrayListOf("Strength", "Dagger"), listOf("Damage=4", "Energy=2", "Requires=Dagger"))
+        unit.abilities += Ability("Stab", arrayListOf("Strength", "Dagger"), listOf("Damage=8", "Energy=5", "Requires=Dagger"))
                 .apply { experience=10 }
         unit.items += Item("Pathetic wooden spear", "Spear", "Equip=Hands").apply { isEquipped=true }
+        unit.status += sequenceOf("EquipSlot=Hands","EquipSlot=Chest")
         println("You wake up hungry again.")
         println("You are a Goblin, one of many in this cave.")
         println("But something feels different, now - you're confident that life is changing for the better.")
